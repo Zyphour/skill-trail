@@ -7,8 +7,20 @@ import EmptyState from './EmptyState';
  * Rich Markdown Notes Editor with formatting toolbar, live preview,
  * interactive task checklists, and autosave.
  */
-export default function NotesEditor({ slug, nodeId }: { slug: string; nodeId: string }) {
+export default function NotesEditor({
+  slug,
+  nodeId,
+  onNoteChange,
+}: {
+  slug: string;
+  nodeId: string;
+  onNoteChange?: (note: string) => void;
+}) {
   const [note, setNote] = useState('');
+  function updateNote(value: string) {
+    setNote(value);
+    onNoteChange?.(value);
+  }
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -62,7 +74,7 @@ export default function NotesEditor({ slug, nodeId }: { slug: string; nodeId: st
     const selected = note.substring(start, end);
     const replacement = before + (selected || 'text') + after;
     const nextVal = note.substring(0, start) + replacement + note.substring(end);
-    setNote(nextVal);
+    updateNote(nextVal);
     setTimeout(() => {
       el.focus();
       el.selectionStart = start + before.length;
@@ -86,7 +98,7 @@ export default function NotesEditor({ slug, nodeId }: { slug: string; nodeId: st
         taskIdx++;
       }
     }
-    setNote(lines.join('\n'));
+    updateNote(lines.join('\n'));
   }
 
   function renderPreview(markdown: string) {
@@ -285,7 +297,7 @@ export default function NotesEditor({ slug, nodeId }: { slug: string; nodeId: st
           ref={textareaRef}
           aria-label="Topic notes"
           value={note}
-          onChange={(e) => setNote(e.target.value)}
+          onChange={(e) => updateNote(e.target.value)}
           placeholder="Write your personal notes, code snippets, or checklists for this topic... (Autosaved & backed up)"
           rows={6}
           className="w-full px-3 py-2 text-xs rounded-lg border resize-y font-mono leading-relaxed"
